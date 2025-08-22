@@ -1,0 +1,272 @@
+@startuml
+scale 1024 width
+scale 768 height
+title Hisar Hospital Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+
+' Entities
+package "Entity" {
+    abstract class UserEntity {
+        - Long id
+        - String identityNumber
+        - String firstName
+        - String lastName
+        - String email
+        - String password
+        - String phone
+        - UserRole role
+        - Timestamp createdAt
+        - Timestamp updatedAt
+        - Status status
+    }
+    class Patient extends UserEntity {
+        - LocalDate birthDate
+        - Gender gender
+        - String address
+    }
+    class Doctor extends UserEntity {
+        - String specialization
+        - int experienceYear
+        - String qualification
+        - String schedule
+        - String photoUrl
+    }
+}
+
+' DTOs (Request & Response)
+package "DTO" {
+    package request {
+    ' Request DTOs
+        class UserRequest {
+            - String firstName
+            - String lastName
+            - String email
+            - String password
+            - String phone
+        }
+        class PatientRequest extends UserRequest {
+            - LocalDate birthDate
+            - Gender gender
+            - String address
+        }
+        class DoctorRequest extends UserRequest {
+            - String specialization
+            - int experienceYears
+            - String qualification
+            - String photoUrl
+        }
+    }
+
+    package response {
+    ' Response DTOs
+        class UserResponse {
+            - Long id
+            - String identityNumber
+            - String firstName
+            - String lastName
+            - String email
+            - String phone
+            - UserRole role
+            - Status status
+            - Timestamp createdAt
+        }
+        class PatientResponse extends UserResponse {
+            - LocalDate birthDate
+            - Gender gender
+            - String address
+        }
+        class DoctorResponse extends UserResponse {
+            - String specialization
+            - int experienceYear
+            - String qualification
+            - String schedule
+            - String photoUrl
+        }
+    }
+
+    ' Generic Web Response
+    class WebResponse<T> {
+        + int status
+        + String message
+        + T data
+    }
+}
+
+' Repositories
+package "Repository" {
+    interface PatientRepository {
+        + Patient save(Patient patient)
+        + Optional<Patient> findById(Long id)
+        + List<Patient> findAll()
+        + void deleteById(Long id)
+    }
+    interface DoctorRepository {
+        + Doctor save(Doctor doctor)
+        + Optional<Doctor> findById(Long id)
+        + List<Doctor> findAll()
+        + void deleteById(Long id)
+    }
+    interface UserRepository {
+        + Optional<UserEntity> findByEmail(String email)
+        + Optional<UserEntity> findById(Long id)
+    }
+}
+
+' Services
+package "Service" {
+    interface PatientService {
+        + PatientResponse registerPatient(PatientRequest request)
+        + PatientResponse findPatientById(Long id)
+        + List<PatientResponse> findAllPatients()
+        + PatientResponse updatePatient(Long id, PatientRequest request)
+        + void deletePatient(Long id)
+    }
+    interface DoctorService {
+        + DoctorResponse registerDoctor(DoctorRequest request)
+        + DoctorResponse findDoctorById(Long id)
+        + List<DoctorResponse> findAllDoctors()
+        + DoctorResponse updateDoctor(Long id, DoctorRequest request)
+        + void deleteDoctor(Long id)
+    }
+    interface UserService {
+        + UserResponse findUserByEmail(String email)
+        + UserResponse login(String email, String password)
+    }
+}
+
+' Service Implementations
+package "Service.Impl" {
+    class PatientServiceImpl implements PatientService {
+        - PatientRepository patientRepository
+        - UserMapper patientMapper // Assume a mapper for Patient <-> PatientResponse/Request
+        + PatientResponse registerPatient(PatientRequest request)
+        + PatientResponse findPatientById(Long id)
+        + List<PatientResponse> findAllPatients()
+        + PatientResponse updatePatient(Long id, PatientRequest request)
+        + void deletePatient(Long id)
+    }
+    class DoctorServiceImpl implements DoctorService {
+        - DoctorRepository doctorRepository
+        - DoctorMapper doctorMapper // Assume a mapper for Doctor <-> DoctorResponse/Request
+        + DoctorResponse registerDoctor(DoctorRequest request)
+        + DoctorResponse findDoctorById(Long id)
+        + List<DoctorResponse> findAllDoctors()
+        + DoctorResponse updateDoctor(Long id, DoctorRequest request)
+        + void deleteDoctor(Long id)
+    }
+    class UserServiceImpl implements UserService {
+        - UserRepository userRepository
+        - UserMapper userMapper // Assume a mapper for UserEntity <-> UserResponse
+        + UserResponse findUserByEmail(String email)
+        + UserResponse login(String email, String password)
+    }
+}
+
+' Mappers (Example of dedicated mapper interfaces)
+package "Mapper" {
+    interface PatientMapper {
+        + Patient toPatient(PatientRequest request)
+        + PatientResponse toPatientResponse(Patient patient)
+        + List<PatientResponse> toPatientResponseList(List<Patient> patients)
+        + void updatePatientFromRequest(PatientRequest request, @MappingTarget Patient patient)
+    }
+    interface DoctorMapper {
+        + Doctor toDoctor(DoctorRequest request)
+        + DoctorResponse toDoctorResponse(Doctor doctor)
+        + List<DoctorResponse> toDoctorResponseList(List<Doctor> doctors)
+        + void updateDoctorFromRequest(DoctorRequest request, @MappingTarget Doctor doctor)
+    }
+    interface UserMapper {
+        + UserResponse toUserResponse(UserEntity userEntity)
+    }
+}
+
+' Controllers
+package "Controller" {
+    class PatientController {
+        - PatientService patientService
+        + ResponseEntity<WebResponse<PatientResponse>> registerPatient(PatientRequest request)
+        + ResponseEntity<WebResponse<List<PatientResponse>>> getAllPatients()
+        + ResponseEntity<WebResponse<PatientResponse>> getPatientById(Long id)
+        + ResponseEntity<WebResponse<PatientResponse>> updatePatient(Long id, PatientRequest request)
+        + ResponseEntity<WebResponse<Void>> deletePatient(Long id)
+    }
+    class DoctorController {
+        - DoctorService doctorService
+        + ResponseEntity<WebResponse<DoctorResponse>> registerDoctor(DoctorRequest request)
+        + ResponseEntity<WebResponse<List<DoctorResponse>>> getAllDoctors()
+        + ResponseEntity<WebResponse<DoctorResponse>> getDoctorById(Long id)
+        + ResponseEntity<WebResponse<DoctorResponse>> updateDoctor(Long id, DoctorRequest request)
+        + ResponseEntity<WebResponse<Void>> deleteDoctor(Long id)
+    }
+}
+
+' Global Error Handler
+package "ErrorHandling" {
+    class GlobalExceptionHandler << (E,orchid) RestControllerAdvice >> {
+        + ResponseEntity<WebResponse<Void>> handleValidationException(MethodArgumentNotValidException ex)
+        + ResponseEntity<WebResponse<Void>> handleNotFoundException(ResourceNotFoundException ex)
+        + ResponseEntity<WebResponse<Void>> handleGenericException(Exception ex)
+    }
+    class ResourceNotFoundException extends RuntimeException {
+    }
+    class ValidationException extends RuntimeException {
+    }
+}
+
+
+' Relationships
+Patient --> PatientRepository
+Doctor --> DoctorRepository
+
+PatientServiceImpl .up.|> PatientService
+DoctorServiceImpl .up.|> DoctorService
+UserServiceImpl .up.|> UserService
+
+PatientServiceImpl ..> PatientRepository
+DoctorServiceImpl ..> DoctorRepository
+UserServiceImpl ..> UserRepository
+
+PatientController ..> PatientService
+DoctorController ..> DoctorService
+
+PatientServiceImpl ..> PatientMapper
+DoctorServiceImpl ..> DoctorMapper
+UserServiceImpl ..> UserMapper
+
+PatientMapper .up.|> DTO.request.PatientRequest
+PatientMapper .up.|> DTO.response.PatientResponse
+DoctorMapper .up.|> DTO.request.DoctorRequest
+DoctorMapper .up.|> DTO.response.DoctorResponse
+UserMapper .up.|> DTO.response.UserResponse
+
+
+PatientController --> PatientRequest
+DoctorController --> DoctorRequest
+
+PatientService ..> PatientRequest
+DoctorService ..> DoctorRequest
+PatientService ..> PatientResponse
+DoctorService ..> DoctorResponse
+UserService ..> UserResponse
+
+PatientServiceImpl ..> PatientResponse
+DoctorServiceImpl ..> DoctorResponse
+UserServiceImpl ..> UserResponse
+
+UserEntity <|-- Patient
+UserEntity <|-- Doctor
+
+UserRequest <|-- PatientRequest
+UserRequest <|-- DoctorRequest
+UserResponse <|-- PatientResponse
+UserResponse <|-- DoctorResponse
+
+Controller.PatientController ..> DTO.WebResponse
+Controller.DoctorController ..> DTO.WebResponse
+ErrorHandling.GlobalExceptionHandler ..> DTO.WebResponse
+
+@enduml
