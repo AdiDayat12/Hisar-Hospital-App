@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Patient } from "../../src/types/patient";
-import { getPatient } from "../util/api"; // misal
+import { Patient } from "../types/patient";
+import { getPatient } from "../util/api/patient";
 
 export function usePatient() {
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -15,7 +15,7 @@ export function usePatient() {
           id: data.id,
           name: `${data.firstName} ${data.lastName}`,
           email: data.email,
-          idNumber: data.idNumber,
+          identityNumber: data.identityNumber,
           birthDate: data.birthDate,
           phone: data.phone,
           address: data.address,

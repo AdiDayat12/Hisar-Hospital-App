@@ -1,3 +1,4 @@
+import { updatePatientProfile } from "@/src/util/api/patient";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -12,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { usePatient } from "./hooks/useFetchPatient";
+import { usePatient } from "../src/hooks/useFetchPatient";
 
 // -----------------------------------------------------------------------------
 // Komponen utama untuk halaman Pembaruan Profil
@@ -22,13 +23,14 @@ export default function UpdateProfile() {
   const { patient, loading, error } = usePatient();
 
   // Ganti dengan data pengguna nyata yang dimuat dari state atau API
+  const [identityNumber, setIdentityNumber] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [idNumber, setIdNumber] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("081234567890");
+  const [phone, setPhone] = useState("081234567890");
   const [address, setAddress] = useState("Jl. Contoh No. 123, Jakarta");
-  const [dateOfBirth, setDateOfBirth] = useState("01/01/1990");
+  const [birthdate, setBirthDate] = useState("01/01/1990");
   const router = useRouter();
+  const [saving, setSaving] = useState(false);
 
   // isi form otomatis begitu patient tersedia
   useEffect(() => {
@@ -39,29 +41,31 @@ export default function UpdateProfile() {
 
       setFirstName(firstName);
       setLastName(lastName);
-      setIdNumber(patient.idNumber ?? "");
-      setPhoneNumber(patient.phone ?? "");
+      setIdentityNumber(patient.identityNumber ?? "");
+      setPhone(patient.phone ?? "");
       setAddress(patient.address ?? "");
-      setDateOfBirth(patient.birthDate ?? "");
+      setBirthDate(patient.birthDate ?? "");
     }
   }, [patient]);
 
   // Fungsi untuk menyimpan perubahan profil
-  const handleSaveProfile = () => {
-    // --- Ganti dengan logika nyata untuk memperbarui data di backend ---
-    // Pastikan Anda memvalidasi setiap bidang sebelum mengirimnya.
-    console.log("Menyimpan perubahan profil:", {
-      firstName,
-      lastName,
-      phoneNumber,
-      address,
-      dateOfBirth,
-    });
-
-    Alert.alert("Berhasil", "Profil Anda telah berhasil diperbarui.");
-
-    // Opsional: Arahkan pengguna kembali ke halaman utama atau tab lain
-    // router.replace('/(tabs)');
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const response = await updatePatientProfile({
+        identityNumber,
+        firstName,
+        lastName,
+        phone,
+        birthdate,
+        address,
+      });
+      router.replace("/(tabs)/profile");
+    } catch (err: any) {
+      Alert.alert("Error", err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -112,8 +116,8 @@ export default function UpdateProfile() {
                   className="bg-white/80 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 shadow-sm"
                   placeholder="Masukkan ID number"
                   keyboardType="phone-pad"
-                  value={idNumber}
-                  onChangeText={setIdNumber}
+                  value={identityNumber}
+                  onChangeText={setIdentityNumber}
                 />
 
                 <Text className="text-sm text-white font-semibold mb-2">
@@ -123,8 +127,8 @@ export default function UpdateProfile() {
                   className="bg-white/80 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 shadow-sm"
                   placeholder="Masukkan nomor telepon"
                   keyboardType="phone-pad"
-                  value={phoneNumber}
-                  onChangeText={setPhoneNumber}
+                  value={phone}
+                  onChangeText={setPhone}
                 />
 
                 <Text className="text-sm text-white font-semibold mb-2">
@@ -133,8 +137,8 @@ export default function UpdateProfile() {
                 <TextInput
                   className="bg-white/80 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 shadow-sm"
                   placeholder="Contoh: 01/01/1990"
-                  value={dateOfBirth}
-                  onChangeText={setDateOfBirth}
+                  value={birthdate}
+                  onChangeText={setBirthDate}
                 />
 
                 <Text className="text-sm text-white font-semibold mb-2">

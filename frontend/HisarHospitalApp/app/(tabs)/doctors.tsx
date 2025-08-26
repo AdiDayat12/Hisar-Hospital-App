@@ -1,128 +1,118 @@
-// Halaman Doctors
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
+  ActivityIndicator,
+  FlatList,
   Image,
   SafeAreaView,
-  ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-
-// Data tiruan untuk dokter
-const DUMMY_DOCTORS = [
-  {
-    id: "1",
-    name: "Dr. John Doe",
-    specialty: "General Practitioner",
-    imageUrl: "https://placehold.co/400x400/2563eb/white?text=Dr+John",
-  },
-  {
-    id: "2",
-    name: "Dr. Jane Smith",
-    specialty: "Pediatrician",
-    imageUrl: "https://placehold.co/400x400/ef4444/white?text=Dr+Jane",
-  },
-  {
-    id: "3",
-    name: "Dr. Michael Chen",
-    specialty: "Cardiologist",
-    imageUrl: "https://placehold.co/400x400/10b981/white?text=Dr+Michael",
-  },
-  {
-    id: "4",
-    name: "Dr. Emily White",
-    specialty: "Dermatologist",
-    imageUrl: "https://placehold.co/400x400/f59e0b/white?text=Dr+Emily",
-  },
-  {
-    id: "5",
-    name: "Dr. Adam Brown",
-    specialty: "Neurologist",
-    imageUrl: "https://placehold.co/400x400/6366f1/white?text=Dr+Adam",
-  },
-  {
-    id: "6",
-    name: "Dr. Olivia Kim",
-    specialty: "Oncologist",
-    imageUrl: "https://placehold.co/400x400/ec4899/white?text=Dr+Olivia",
-  },
-  {
-    id: "7",
-    name: "Dr. Olivia Kim",
-    specialty: "Oncologist",
-    imageUrl: "https://placehold.co/400x400/ec4899/white?text=Dr+Olivia",
-  },
-  {
-    id: "8",
-    name: "Dr. Olivia Kim",
-    specialty: "Oncologist",
-    imageUrl: "https://placehold.co/400x400/ec4899/white?text=Dr+Olivia",
-  },
-  {
-    id: "9",
-    name: "Dr. Olivia Kim",
-    specialty: "Oncologist",
-    imageUrl: "https://placehold.co/400x400/ec4899/white?text=Dr+Olivia",
-  },
-  {
-    id: "10",
-    name: "Dr. Olivia Kim",
-    specialty: "Oncologist",
-    imageUrl: "https://placehold.co/400x400/ec4899/white?text=Dr+Olivia",
-  },
-];
+import { useDoctors } from "../../src/hooks/useFetchAllDoctors";
+// Impor hook useTranslation
+import { useTranslation } from "react-i18next";
 
 const Doctors = () => {
-  const handlePressCard = (id: string) => {
-    // Navigasi ke halaman detail dokter dengan ID yang dipilih
+  // Gunakan hook useTranslation
+  const { t } = useTranslation();
+  const handlePressCard = (id: number) => {
     router.push(`/doctors/${id}`);
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-gray-100 mt-7">
-      <ScrollView className="p-6">
-        <Text className="text-3xl font-bold mb-6 mt-4 text-center">
-          Temukan Dokter Terbaik
+  const { doctors, loading, error, page, totalPages, setPage } = useDoctors();
+
+  // Tampilkan loading screen saat pertama kali memuat data
+  if (loading && doctors.length === 0) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-100">
+        <ActivityIndicator size="large" color="#2563EB" />
+        <Text className="mt-4 text-lg text-gray-600">{t("loading")}</Text>
+      </View>
+    );
+  }
+
+  // Tampilkan pesan error jika terjadi
+  if (error) {
+    return (
+      <View className="flex-1 justify-center items-center bg-gray-100 p-6">
+        <Text className="text-red-500 text-lg text-center font-semibold">
+          {t("error.failedToFetch")}
         </Text>
-        <View className="flex-row flex-wrap justify-between">
-          {DUMMY_DOCTORS.map((doctor) => (
-            <TouchableOpacity
-              key={doctor.id}
-              className="w-[48%] mb-4 p-4 bg-white rounded-lg shadow-md items-center"
-              onPress={() => handlePressCard(doctor.id)}
-            >
-              <Image
-                source={{ uri: doctor.imageUrl }}
-                className="w-24 h-24 rounded-full mb-3"
-              />
-              <Text className="font-semibold text-lg text-center">
-                {doctor.name}
-              </Text>
-              <Text className="text-sm text-gray-500 text-center">
-                {doctor.specialty}
-              </Text>
-              <View className="mt-3 w-full">
-                <TouchableOpacity
-                  className="bg-blue-500 p-2 rounded-md flex-row justify-center items-center"
-                  onPress={() => handlePressCard(doctor.id)}
-                >
-                  <Text className="text-white font-semibold mr-2">
-                    Lihat Profil
-                  </Text>
-                  <MaterialIcons
-                    name="arrow-right-alt"
-                    size={20}
-                    color="white"
-                  />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+        <Text className="text-red-400 text-sm mt-2 text-center">{error}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <FlatList
+        data={doctors}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        columnWrapperStyle={{
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+        }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            key={item.id}
+            // Updated: Added shadow-md and slightly rounded corners
+            className="w-[48%] mb-4 p-4 bg-white rounded-xl shadow-md items-center"
+            onPress={() => handlePressCard(item.id)}
+          >
+            {/* Gambar Profil Dokter */}
+            <Image
+              source={{
+                uri: item.photoUrl || "https://via.placeholder.com/150",
+              }}
+              className="w-24 h-24 rounded-full mb-3 border-2 border-gray-200"
+            />
+            {/* Nama dan Spesialisasi Dokter */}
+            <Text className="font-bold text-lg text-center text-gray-800">
+              {item.qualification}. {item.firstName} {item.lastName}
+            </Text>
+            <Text className="text-sm text-gray-500 text-center mt-1">
+              {item.specialization}
+            </Text>
+            {/* Tombol Lihat Profil */}
+            <View className="mt-3 w-full">
+              <TouchableOpacity
+                // Updated: Changed button color to orange and added shadow
+                className="bg-blue-500 p-2 rounded-lg flex-row justify-center items-center shadow-sm"
+                onPress={() => handlePressCard(item.id)}
+              >
+                <Text className="text-white font-semibold mr-2">
+                  {t("viewProfile")}
+                </Text>
+                <MaterialIcons name="arrow-right-alt" size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        )}
+        onEndReached={() => {
+          if (!loading && page < totalPages - 1) {
+            setPage(page + 1);
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        contentContainerStyle={{ paddingTop: 20 }}
+        ListHeaderComponent={() => (
+          <View className="p-6">
+            <Text className="text-3xl font-bold mb-6 mt-4 text-center text-gray-800">
+              {t("findDoctor.title")}
+            </Text>
+          </View>
+        )}
+        ListFooterComponent={() =>
+          loading && doctors.length > 0 ? (
+            <View className="py-4">
+              <ActivityIndicator size="small" color="#2563EB" />
+            </View>
+          ) : null
+        }
+      />
     </SafeAreaView>
   );
 };

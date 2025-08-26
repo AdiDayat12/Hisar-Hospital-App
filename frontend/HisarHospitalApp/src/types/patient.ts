@@ -3,7 +3,7 @@ export interface Patient {
   id: number;
   name: string;
   email: string;
-  idNumber: string;
+  identityNumber: string;
   birthDate: string;
   phone: string;
   address: string;
@@ -16,7 +16,6 @@ export interface PatientResponse {
   lastName: string;
   identityNumber: string;
   email: string;
-  idNumber: string;
   birthDate: string;
   phone: string;
   address: string;

@@ -1,8 +1,16 @@
-// app/new-appointment.tsx
+// app/(tabs)/new-appointment.tsx
+
+import { usePatientContext } from "@/src/context/PatientContext";
+import {
+  AppointmentRequest,
+  bookAppointment,
+} from "@/src/util/api/appointment";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   SafeAreaView,
@@ -11,51 +19,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// Impor pustaka kalender. Pastikan Anda sudah menginstalnya dengan 'npm install react-native-calendars'
 import { Calendar } from "react-native-calendars";
+import { useDoctor } from "../src/hooks/userFetchDoctor";
 
-// Data tiruan untuk dokter
-const DUMMY_DOCTORS = [
-  {
-    id: "1",
-    name: "Dr. John Doe",
-    specialty: "General Practitioner",
-    imageUrl: "https://placehold.co/400x400/2563eb/white?text=Dr+John",
-  },
-  {
-    id: "2",
-    name: "Dr. Jane Smith",
-    specialty: "Pediatrician",
-    imageUrl: "https://placehold.co/400x400/ef4444/white?text=Dr+Jane",
-  },
-  {
-    id: "3",
-    name: "Dr. Michael Chen",
-    specialty: "Cardiologist",
-    imageUrl: "https://placehold.co/400x400/10b981/white?text=Dr+Michael",
-  },
-  {
-    id: "4",
-    name: "Dr. Emily White",
-    specialty: "Dermatologist",
-    imageUrl: "https://placehold.co/400x400/f59e0b/white?text=Dr+Emily",
-  },
-  {
-    id: "5",
-    name: "Dr. Adam Brown",
-    specialty: "Neurologist",
-    imageUrl: "https://placehold.co/400x400/6366f1/white?text=Dr+Adam",
-  },
-  {
-    id: "6",
-    name: "Dr. Olivia Kim",
-    specialty: "Oncologist",
-    imageUrl: "https://placehold.co/400x400/ec4899/white?text=Dr+Olivia",
-  },
-];
-
-// Data tiruan untuk slot waktu
-const DUMMY_TIME_SLOTS = [
+const TIME_SLOTS = [
   "09:00 AM",
   "10:00 AM",
   "11:00 AM",
@@ -66,22 +33,56 @@ const DUMMY_TIME_SLOTS = [
 ];
 
 const NewAppointment = () => {
-  // Fungsi untuk mengarahkan pengguna ke halaman profil
-  const handleCompleteProfile = () => {
-    // Asumsi: Halaman profil berada di rute '(tabs)/profile'
-    router.push("/(tabs)/profile");
-  };
-  // Ambil ID dokter dari parameter URL
-  const { doctorId } = useLocalSearchParams();
-  const doctor = DUMMY_DOCTORS.find((d) => d.id === doctorId);
+  const { t } = useTranslation();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  // State untuk melacak tanggal dan waktu yang dipilih
+  const {
+    patient,
+    loading: patientLoading,
+    error: patientError,
+  } = usePatientContext();
+
+  const doctorId = id ? Number(id) : null;
+  const {
+    doctor,
+    loading: doctorLoading,
+    error: doctorError,
+  } = useDoctor(doctorId);
+
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
 
+  if (patientLoading || (doctorId && doctorLoading)) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (patientError || (doctorId && doctorError)) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="text-red-500 text-lg">
+          {t("error")}: {t("error.failedToFetch")}
+        </Text>
+      </View>
+    );
+  }
+
+  const isProfileComplete =
+    patient &&
+    patient?.identityNumber &&
+    patient?.birthDate &&
+    patient?.phone &&
+    patient?.address;
+
+  const handleCompleteProfile = () => {
+    router.push("/(tabs)/profile");
+  };
+
   const handleDayPress = (day: { dateString: string }) => {
     setSelectedDate(day.dateString);
-    // Reset waktu saat tanggal diubah
     setSelectedTime("");
   };
 
@@ -89,94 +90,123 @@ const NewAppointment = () => {
     setSelectedTime(time);
   };
 
-  const handleConfirmAppointment = () => {
-    // Validasi apakah tanggal dan waktu sudah dipilih
+  const handleConfirmAppointment = async () => {
     if (!selectedDate || !selectedTime) {
-      // Gunakan Alert sebagai pengganti confirm()
-      Alert.alert("Peringatan", "Mohon pilih tanggal dan waktu janji temu.");
+      Alert.alert(t("alert.warning"), t("alert.selectDateAndTime"));
       return;
     }
 
-    // Logika untuk mengonfirmasi janji temu
-    console.log(
-      `Janji temu dikonfirmasi untuk Dr. ${
-        doctor?.name || "terpilih"
-      } pada ${selectedDate} pukul ${selectedTime}`
-    );
-    Alert.alert(
-      "Konfirmasi Berhasil",
-      `Janji temu Anda dengan Dr. ${
-        doctor?.name || "terpilih"
-      } pada ${selectedDate} pukul ${selectedTime} telah berhasil dibuat!`,
-      [{ text: "OK", onPress: () => router.replace("/appointment") }]
-    );
+    try {
+      const request: AppointmentRequest = {
+        doctorId: doctorId,
+        specialization: doctor?.specialization || " ",
+        appointmentDate: selectedDate,
+        appointmentTime: convertTo24Hour(selectedTime),
+      };
+
+      const response = await bookAppointment(request);
+
+      Alert.alert(
+        t("alert.successTitle"),
+        t("alert.successMessage", {
+          doctorName: doctor?.firstName || t("selected"),
+          date: selectedDate,
+          time: selectedTime,
+        }),
+        [
+          {
+            text: t("alert.okButton"),
+            onPress: () =>
+              router.replace({
+                pathname: "/appointment",
+                params: { appointmentId: response.data.id.toString() },
+              }),
+          },
+        ]
+      );
+    } catch (error: any) {
+      Alert.alert(
+        t("error"),
+        error.response?.data?.message || t("error.failedToCreateAppointment")
+      );
+    }
   };
+
+  function convertTo24Hour(time: string) {
+    const [timePart, modifier] = time.split(" ");
+    let [hours, minutes] = timePart.split(":").map(Number);
+
+    if (modifier === "PM" && hours < 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:00`;
+  }
+
+  const isDoctorSelected = !!doctor;
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100 mt-7">
       <ScrollView className="p-6">
         <Text className="text-3xl font-bold mb-6 text-center">
-          Buat Janji Temu
+          {t("newAppointment.title")}
         </Text>
 
-        {/* Banner peringatan di bagian atas */}
-        {/* Catatan: Di sini adalah tempat Anda akan menambahkan logika untuk
-          menampilkan banner hanya jika profil pengguna belum lengkap.
-          Contoh: {isProfileComplete ? null : ( <View>...</View> )}
-      */}
-        <View className="mx-4 mt-4 mb-5 p-4 bg-amber-100 rounded-lg border border-amber-300 flex-row items-center space-x-3 shadow-sm">
-          <Ionicons name="alert-circle-outline" size={24} color="#b45309" />
-          <View className="flex-1">
-            <Text className="text-sm font-semibold text-amber-800">
-              Untuk membuat janji temu, mohon lengkapi profil Anda terlebih
-              dahulu.
-            </Text>
+        {!isProfileComplete && (
+          <View className="mx-4 mt-4 mb-5 p-4 bg-amber-100 rounded-lg border border-amber-300 flex-row items-center space-x-3 shadow-sm">
+            <Ionicons name="alert-circle-outline" size={24} color="#b45309" />
+            <View className="flex-1">
+              <Text className="text-sm font-semibold text-amber-800">
+                {t("newAppointment.incompleteProfileMessage")}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={handleCompleteProfile} className="ml-2">
+              <Text className="text-sm font-bold text-amber-800 underline">
+                {t("newAppointment.completeNowButton")}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={handleCompleteProfile} className="ml-2">
-            <Text className="text-sm font-bold text-amber-800 underline">
-              Lengkapi Sekarang
-            </Text>
-          </TouchableOpacity>
-        </View>
+        )}
 
-        {/* Doctor Info Section */}
-        {doctor ? (
+        {isDoctorSelected ? (
           <View className="bg-white p-6 rounded-lg shadow-sm mb-6 items-center">
             <Image
-              source={{ uri: doctor.imageUrl }}
-              className="w-24 h-24 rounded-full mb-4"
+              source={{ uri: doctor.photoUrl }}
+              className="w-24 h-24 rounded-full mb-4 border-2 border-blue-400"
             />
             <Text className="text-xl font-bold text-gray-800">
-              {doctor.name}
+              {t("doctor.namePrefix")} {doctor.firstName} {doctor.lastName}
             </Text>
-            <Text className="text-base text-gray-600">{doctor.specialty}</Text>
+            <Text className="text-base text-gray-600">
+              {doctor.specialization}
+            </Text>
           </View>
         ) : (
           <View className="bg-white p-6 rounded-lg shadow-sm mb-6 items-center">
             <Text className="text-xl font-bold text-gray-800 mb-2">
-              Pilih Dokter
+              {t("newAppointment.selectDoctorTitle")}
             </Text>
             <Text className="text-gray-600 mb-4 text-center">
-              Anda bisa memilih dokter dari daftar di bawah ini atau mencari
-              spesialisasi yang Anda butuhkan.
+              {t("newAppointment.selectDoctorDescription")}
             </Text>
             <TouchableOpacity
               className="bg-blue-600 p-3 rounded-lg flex-row items-center justify-center w-full"
               onPress={() => router.push("/doctors")}
             >
               <Ionicons name="search" size={20} color="white" />
-              <Text className="text-white font-semibold ml-2">Cari Dokter</Text>
+              <Text className="text-white font-semibold ml-2">
+                {t("newAppointment.searchDoctorButton")}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Appointment Form */}
         <View className="bg-white p-6 rounded-lg shadow-sm mb-6">
           <Text className="text-xl font-semibold mb-4">
-            Pilih Tanggal & Waktu
+            {t("newAppointment.selectDateAndTime")}
           </Text>
 
-          {/* Kalender untuk memilih tanggal */}
           <Calendar
             onDayPress={handleDayPress}
             markedDates={{
@@ -190,7 +220,6 @@ const NewAppointment = () => {
               todayTextColor: "#2563eb",
               selectedDayBackgroundColor: "#2563eb",
             }}
-            // Render panah navigasi kustom
             renderArrow={(direction) => (
               <Ionicons
                 name={direction === "left" ? "chevron-back" : "chevron-forward"}
@@ -200,11 +229,12 @@ const NewAppointment = () => {
             )}
           />
 
-          {/* Slot waktu */}
           <View className="mt-6">
-            <Text className="text-lg font-semibold mb-3">Pilih Slot Waktu</Text>
+            <Text className="text-lg font-semibold mb-3">
+              {t("newAppointment.selectTimeSlot")}
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {DUMMY_TIME_SLOTS.map((time, index) => (
+              {TIME_SLOTS.map((time, index) => (
                 <TouchableOpacity
                   key={index}
                   className={`p-3 rounded-lg mr-2 border ${
@@ -229,7 +259,6 @@ const NewAppointment = () => {
           </View>
         </View>
 
-        {/* Confirmation Button */}
         <TouchableOpacity
           className={`p-4 rounded-lg shadow-md flex-row items-center justify-center mb-20 ${
             !selectedDate || !selectedTime ? "bg-gray-400" : "bg-blue-600"
@@ -239,7 +268,7 @@ const NewAppointment = () => {
         >
           <Ionicons name="checkmark-circle-outline" size={24} color="white" />
           <Text className="text-white text-lg font-semibold ml-2">
-            Konfirmasi Janji Temu
+            {t("newAppointment.confirmButton")}
           </Text>
         </TouchableOpacity>
       </ScrollView>

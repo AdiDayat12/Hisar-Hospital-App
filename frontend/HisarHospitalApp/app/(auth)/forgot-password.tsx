@@ -1,6 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -18,6 +20,7 @@ import {
 // -----------------------------------------------------------------------------
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const router = useRouter();
 
@@ -25,15 +28,15 @@ export default function ForgotPassword() {
   const handleSendOTP = () => {
     // --- Ganti dengan logika nyata untuk mengirim OTP ke email pengguna ---
     // Logika ini harus berinteraksi dengan API backend Anda.
-    console.log("Mencoba mengirim OTP ke:", email);
+    console.log(t("forgotPassword.sendOtpTo"), email);
 
     if (!email) {
-      Alert.alert("Gagal", "Silakan masukkan alamat email Anda.");
+      Alert.alert(t("alert.failTitle"), t("forgotPassword.enterEmailPrompt"));
       return;
     }
 
     // Simulasi respons berhasil
-    Alert.alert("Berhasil", "OTP telah dikirim ke email Anda.");
+    Alert.alert(t("alert.successTitle"), t("forgotPassword.otpSentMessage"));
 
     // Arahkan ke halaman reset password, bisa dengan membawa parameter email
     router.replace({
@@ -43,8 +46,8 @@ export default function ForgotPassword() {
   };
 
   return (
-    <View className="flex-1">
-      <LinearGradient colors={["#4299e1", "#89cff0"]} className="flex-1">
+    <View className="flex-1 bg-gray-100">
+      <LinearGradient colors={["#D13011", "#2563EB"]} className="flex-1">
         <SafeAreaView className="flex-1">
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -53,23 +56,28 @@ export default function ForgotPassword() {
             <ScrollView
               contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
             >
-              <View className="items-center mb-10">
+              <View className="items-center mb-8 mt-16">
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={80}
+                  color="white"
+                  className="mb-4"
+                />
                 <Text className="text-3xl font-bold text-white mb-2 text-center">
-                  Lupa Password?
+                  {t("forgotPassword.title")}
                 </Text>
-                <Text className="text-base text-white/90 text-center">
-                  Masukkan email Anda. Kami akan mengirimkan kode OTP untuk
-                  mengatur ulang password.
+                <Text className="text-base text-white/90 text-center px-4">
+                  {t("forgotPassword.description")}
                 </Text>
               </View>
 
-              <View className="w-full bg-white/30 rounded-lg p-6 backdrop-blur-lg">
-                <Text className="text-sm text-white font-semibold mb-2">
-                  Email
+              <View className="w-full bg-white rounded-2xl p-6 shadow-xl">
+                <Text className="text-sm text-gray-700 font-semibold mb-2">
+                  {t("forgotPassword.emailLabel")}
                 </Text>
                 <TextInput
-                  className="bg-white/80 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 shadow-sm"
-                  placeholder="Masukkan email terdaftar Anda"
+                  className="bg-gray-100 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 border border-gray-200"
+                  placeholder={t("forgotPassword.emailPlaceholder")}
                   keyboardType="email-address"
                   value={email}
                   onChangeText={setEmail}
@@ -77,18 +85,18 @@ export default function ForgotPassword() {
                 />
 
                 <TouchableOpacity
-                  className="bg-white h-12 rounded-lg justify-center items-center mt-2 shadow-lg shadow-gray-400"
+                  className="bg-orange-600 h-12 rounded-lg justify-center items-center mt-2 shadow-lg"
                   onPress={handleSendOTP}
                 >
-                  <Text className="text-blue-500 text-lg font-bold">
-                    Kirim OTP
+                  <Text className="text-white text-lg font-bold">
+                    {t("forgotPassword.sendOtpButton")}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => router.back()}>
-                  <Text className="mt-5 text-sm text-white text-center">
-                    <Text className="font-semibold">
-                      Kembali ke halaman Login
+                  <Text className="mt-5 text-sm text-center text-gray-600">
+                    <Text className="font-semibold text-blue-700">
+                      {t("forgotPassword.backToLogin")}
                     </Text>
                   </Text>
                 </TouchableOpacity>

@@ -1,6 +1,7 @@
 import { AntDesign, FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
+import "../../src/i18n/i18n";
 import "../globals.css";
 // Anda bisa membuat komponen ikon yang dapat digunakan kembali
 function TabBarIcon(props: {
