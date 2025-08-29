@@ -19,6 +19,7 @@ export interface AppointmentResponse {
   doctorId: number;
   doctorName: string;
   specialization: string;
+  patientName: string;
   appointmentDate: string; // "2025-08-23" format yyyy-MM-dd
   appointmentTime: string; // "14:30:00" format HH:mm:ss
   status: string;
@@ -43,6 +44,30 @@ export async function getAllAppointments(): Promise<
     `${API_URL}/appointments/patient/me`
   );
   return response.data;
+}
+
+interface JwtPayload {
+  sub: string;
+  role: string;
+  // tambahkan field lain jika ada
+}
+
+export async function getAllAppointmentsByDoctor(
+  date?: string
+): Promise<ApiResponse<AppointmentResponse[]>> {
+  try {
+    const response = await axios.get<ApiResponse<AppointmentResponse[]>>(
+      `${API_URL}/appointments/doctor/me`,
+      {
+        params: date ? { date } : {}, // kirim query param hanya jika ada
+      }
+    );
+
+    return response.data;
+  } catch (err: any) {
+    console.error("Error fetching doctor appointments:", err);
+    throw err;
+  }
 }
 
 export async function getAppointmentById(

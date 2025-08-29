@@ -1,5 +1,5 @@
 import { useUserContext } from "@/src/context/UserContext";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,36 +14,32 @@ import {
 } from "react-native";
 import {
   AppointmentResponse,
-  getAllAppointments,
+  getAllAppointmentsByDoctor,
 } from "../../src/util/api/appointment";
 
-const Home = () => {
+// --- Komponen Halaman Home ---
+export default function HomeScreen() {
   const { t, i18n } = useTranslation();
   const [isLanguageModalVisible, setLanguageModalVisible] = useState(false);
+
+  const { user, role, loading, error } = useUserContext();
+
+  console.log(role);
   const [upcomingAppointments, setUpcomingAppointments] = useState<
     AppointmentResponse[]
   >([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
 
-  // Perbaikan: Mengambil 'error' dari useUserContext
-  const { user, role, loading, error } = useUserContext();
-
-  // Perbaikan: Menggunakan `firstName` yang sesuai dengan tipe data
-  // Anda tidak memiliki properti 'name', tetapi 'firstName'
-  const firstName = user?.firstName;
-
-  // Menggunakan useFocusEffect untuk memastikan data selalu terbaru
   useFocusEffect(
     useCallback(() => {
       const fetchUpcomingAppointments = async () => {
-        // Perbaikan: Menggunakan `user` bukan `patient`
         if (loading || !user) {
           return;
         }
 
         try {
           setAppointmentsLoading(true);
-          const response = await getAllAppointments();
+          const response = await getAllAppointmentsByDoctor();
           if (response.data) {
             const now = new Date();
             const scheduled = response.data.filter(
@@ -51,7 +47,6 @@ const Home = () => {
                 app.status === "SCHEDULED" &&
                 new Date(`${app.appointmentDate}T${app.appointmentTime}`) > now
             );
-            // Urutkan berdasarkan tanggal dan waktu terdekat
             scheduled.sort(
               (a, b) =>
                 new Date(
@@ -59,7 +54,7 @@ const Home = () => {
                 ).getTime() -
                 new Date(`${b.appointmentDate}T${b.appointmentTime}`).getTime()
             );
-            setUpcomingAppointments(scheduled.slice(0, 1)); // Ambil satu janji temu terdekat
+            setUpcomingAppointments(scheduled.slice(0, 1));
           }
         } catch (error) {
           console.error("Failed to fetch upcoming appointments:", error);
@@ -69,39 +64,19 @@ const Home = () => {
       };
 
       fetchUpcomingAppointments();
-
-      // Perbaikan: Menggunakan `user` sebagai dependensi
     }, [loading, user])
   );
 
-  const handleNewAppointment = () => {
-    router.push("/new-appointment");
-  };
-
+  const nearestAppointment = upcomingAppointments[0];
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
     setLanguageModalVisible(false);
   };
 
-  // Perbaikan: Menangani loading dan error dari UserContext
-  if (loading) return <Text>{t("loading")}</Text>;
-  if (error)
-    return (
-      <Text>
-        {t("error")}: {error}
-      </Text>
-    );
-  // Periksa apakah objek user ada sebelum merender konten
-  if (!user) {
-    return <Text>{t("error")}: User not found.</Text>;
-  }
-
-  const nearestAppointment = upcomingAppointments[0];
-
+  const firstName = user?.firstName;
   return (
-    <SafeAreaView className="flex-1 bg-gray-100 mt-5">
+    <SafeAreaView className="flex-1 bg-gray-100 mt-7">
       <ScrollView className="p-6">
-        {/* Header Section */}
         <View className="flex-row items-center justify-between mb-8 mt-6">
           <View>
             <Text className="text-3xl font-bold text-gray-800">
@@ -113,7 +88,6 @@ const Home = () => {
           </View>
           <TouchableOpacity
             onPress={() => setLanguageModalVisible(true)}
-            // Updated: Changed background and icon color for a more vibrant look
             className="w-12 h-12 bg-blue-100 rounded-full items-center justify-center"
           >
             <Ionicons name="globe-outline" size={24} color="#2563eb" />
@@ -129,17 +103,16 @@ const Home = () => {
             <ActivityIndicator size="small" color="#2563EB" />
           ) : nearestAppointment ? (
             <TouchableOpacity
-              // Updated: Added a subtle hover effect and improved border styling
               className="border-l-4 border-blue-500 pl-4 py-2 hover:bg-gray-50"
               onPress={() =>
                 router.push(`/appointment/${nearestAppointment.id}`)
               }
             >
               <Text className="text-lg font-semibold text-gray-800">
-                {nearestAppointment.doctorName}
+                {nearestAppointment.patientName}
               </Text>
               <Text className="text-sm text-gray-600">
-                {nearestAppointment.specialization}
+                {t("appointmentDetail.notes")}:{nearestAppointment.notes}
               </Text>
               <View className="flex-row items-center mt-2">
                 <Ionicons name="calendar-outline" size={16} color="#4b5563" />
@@ -165,112 +138,86 @@ const Home = () => {
           )}
         </View>
 
-        {/* Quick Actions Section */}
+        {/* Aksi Cepat */}
         <View className="mb-6">
           <Text className="text-xl font-bold mb-4">
             {t("profile.quickActions")}
           </Text>
           <View className="flex-row flex-wrap justify-between">
-            {/* Find a Doctor Card */}
             <TouchableOpacity
-              // Updated: Added a subtle blue background and stronger shadow
               className="w-[48%] bg-blue-50 p-5 rounded-lg shadow-md items-center mb-4"
-              onPress={() => router.push("/doctors")}
+              onPress={() => router.push(`/(tabsDoctor)/appointments`)}
             >
-              <MaterialCommunityIcons name="doctor" size={48} color="#2563eb" />
+              <Ionicons name="calendar" size={48} color="#2563eb" />
               <Text className="mt-3 text-base font-semibold text-center">
-                {t("profile.findDoctor")}
+                {t("doctor.viewSchedule")}
               </Text>
             </TouchableOpacity>
-
-            {/* Book Appointment Card */}
             <TouchableOpacity
-              // Updated: Added a subtle blue background and stronger shadow
               className="w-[48%] bg-blue-50 p-5 rounded-lg shadow-md items-center mb-4"
-              onPress={handleNewAppointment}
+              onPress={() => router.push(`/(tabsDoctor)/profile`)}
             >
-              <MaterialCommunityIcons
-                name="calendar-plus"
-                size={48}
-                color="#2563eb"
-              />
+              <Ionicons name="person" size={48} color="#2563eb" />
               <Text className="mt-3 text-base font-semibold text-center">
-                {t("profile.bookAppointment")}
+                {t("viewProfile")}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* General Info Card */}
-        <TouchableOpacity
-          // Updated: Added a stronger shadow
-          className="bg-blue-50 p-6 rounded-lg shadow-md"
-          onPress={() => router.push("/info-center")}
+        {/* Modal Pemilihan Bahasa */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isLanguageModalVisible}
+          onRequestClose={() => {
+            setLanguageModalVisible(!isLanguageModalVisible);
+          }}
         >
-          <Text className="text-lg font-semibold text-gray-700">
-            {t("profile.infoCenterTitle")}
-          </Text>
-          <Text className="mt-2 text-gray-600">
-            {t("profile.infoCenterDescription")}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* Modal Pemilihan Bahasa */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isLanguageModalVisible}
-        onRequestClose={() => {
-          setLanguageModalVisible(!isLanguageModalVisible);
-        }}
-      >
-        <View className="flex-1 justify-center items-center bg-black/50">
-          <View className="bg-white p-6 rounded-lg w-3/4">
-            <Text className="text-xl font-bold mb-4 text-center">
-              {t("languages.title")}
-            </Text>
-            {/* Updated: Added subtle gray background to language buttons on press */}
-            <TouchableOpacity
-              className="flex-row items-center p-3 mb-2 rounded-lg bg-gray-100 active:bg-gray-200"
-              onPress={() => changeLanguage("id")}
-            >
-              <Text className="text-3xl mr-3">🇮🇩</Text>
-              <Text className="text-base font-semibold">
-                {t("languages.indonesian")}
+          <View className="flex-1 justify-center items-center bg-black/50">
+            <View className="bg-white p-6 rounded-lg w-3/4">
+              <Text className="text-xl font-bold mb-4 text-center">
+                {t("languages.title")}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-row items-center p-3 mb-2 rounded-lg bg-gray-100 active:bg-gray-200"
-              onPress={() => changeLanguage("en")}
-            >
-              <Text className="text-3xl mr-3">🇺🇸</Text>
-              <Text className="text-base font-semibold">
-                {t("languages.english")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-row items-center p-3 rounded-lg bg-gray-100 active:bg-gray-200"
-              onPress={() => changeLanguage("tr")}
-            >
-              <Text className="text-3xl mr-3">🇹🇷</Text>
-              <Text className="text-base font-semibold">
-                {t("languages.turkish")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setLanguageModalVisible(false)}
-              className="mt-4 p-3 bg-red-500 rounded-lg items-center"
-            >
-              <Text className="text-white font-bold">
-                {t("languages.cancel")}
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center p-3 mb-2 rounded-lg bg-gray-100 active:bg-gray-200"
+                onPress={() => changeLanguage("id")}
+              >
+                <Text className="text-3xl mr-3">🇮🇩</Text>
+                <Text className="text-base font-semibold">
+                  {t("languages.indonesian")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center p-3 mb-2 rounded-lg bg-gray-100 active:bg-gray-200"
+                onPress={() => changeLanguage("en")}
+              >
+                <Text className="text-3xl mr-3">🇺🇸</Text>
+                <Text className="text-base font-semibold">
+                  {t("languages.english")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-row items-center p-3 rounded-lg bg-gray-100 active:bg-gray-200"
+                onPress={() => changeLanguage("tr")}
+              >
+                <Text className="text-3xl mr-3">🇹🇷</Text>
+                <Text className="text-base font-semibold">
+                  {t("languages.turkish")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setLanguageModalVisible(false)}
+                className="mt-4 p-3 bg-red-500 rounded-lg items-center"
+              >
+                <Text className="text-white font-bold">
+                  {t("languages.cancel")}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </ScrollView>
     </SafeAreaView>
   );
-};
-
-export default Home;
+}

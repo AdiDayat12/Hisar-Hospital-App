@@ -3,8 +3,8 @@ import {
   getAllAppointments,
 } from "@/src/util/api/appointment";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router"; // Import useFocusEffect
+import React, { useCallback, useState } from "react"; // Import useCallback
 import {
   ActivityIndicator,
   Alert,
@@ -26,25 +26,28 @@ const Appointment = () => {
     "SCHEDULED"
   );
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setLoading(true);
-        const response = await getAllAppointments();
-        if (response.data) {
-          setAppointments(response.data);
-        } else {
-          // Teks di Alert juga perlu dilokalisasi
-          Alert.alert(t("error"), t("error.fetchAppointments"));
+  // Gunakan useFocusEffect untuk mengambil data hanya saat layar fokus
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAppointments = async () => {
+        try {
+          setLoading(true);
+          const response = await getAllAppointments();
+          if (response.data) {
+            setAppointments(response.data);
+          } else {
+            // Teks di Alert juga perlu dilokalisasi
+            Alert.alert(t("error"), t("error.fetchAppointments"));
+          }
+        } catch (error) {
+          Alert.alert(t("error"), t("error.failedToFetch"));
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        Alert.alert(t("error"), t("error.failedToFetch"));
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAppointments();
-  }, []);
+      };
+      fetchAppointments();
+    }, [])
+  );
 
   const scheduledAppointments = appointments.filter(
     (app) => app.status === "SCHEDULED"

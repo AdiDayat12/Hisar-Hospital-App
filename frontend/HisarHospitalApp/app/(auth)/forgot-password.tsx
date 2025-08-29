@@ -1,3 +1,4 @@
+import { useUserContext } from "@/src/context/UserContext";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -21,20 +22,18 @@ import {
 
 export default function ForgotPassword() {
   const { t } = useTranslation();
+  const { sendOtp } = useUserContext();
   const [email, setEmail] = useState("");
   const router = useRouter();
 
   // Fungsi untuk mengirim OTP ke email
   const handleSendOTP = () => {
-    // --- Ganti dengan logika nyata untuk mengirim OTP ke email pengguna ---
-    // Logika ini harus berinteraksi dengan API backend Anda.
-    console.log(t("forgotPassword.sendOtpTo"), email);
-
     if (!email) {
       Alert.alert(t("alert.failTitle"), t("forgotPassword.enterEmailPrompt"));
       return;
     }
 
+    sendOtp(email);
     // Simulasi respons berhasil
     Alert.alert(t("alert.successTitle"), t("forgotPassword.otpSentMessage"));
 

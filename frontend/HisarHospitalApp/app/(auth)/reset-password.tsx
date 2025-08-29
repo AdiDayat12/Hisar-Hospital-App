@@ -1,3 +1,6 @@
+import { useUserContext } from "@/src/context/UserContext";
+import CustomAlert from "@/src/customAlert";
+import { ResetPasswordRequest } from "@/src/types/user";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -15,43 +18,43 @@ import {
   View,
 } from "react-native";
 
-// -----------------------------------------------------------------------------
-// Main component for the Reset Password page
-// -----------------------------------------------------------------------------
-
 export default function ResetPassword() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { email } = useLocalSearchParams(); // Mengambil email dari parameter URL
-  const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { email } = useLocalSearchParams();
+  const { resetPassword } = useUserContext();
+  const [req, setReq] = useState<ResetPasswordRequest>({
+    otp: "",
+    newPassword: "",
+    email: email as string,
+  });
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isAlertVisible, setAlertVisible] = useState(false);
 
-  // Function to handle the password reset process
   const handleResetPassword = () => {
-    // --- Replace with actual logic to verify OTP and reset password ---
-    // This logic should interact with your backend API.
-    console.log(t("resetPassword.resettingFor"), email);
-
-    if (!otp || !newPassword || !confirmPassword) {
+    if (!req.otp || !req.newPassword || !req.newPassword) {
       Alert.alert(t("alert.failTitle"), t("resetPassword.allFieldsRequired"));
       return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (req.newPassword !== confirmNewPassword) {
       Alert.alert(t("alert.failTitle"), t("resetPassword.passwordsDoNotMatch"));
       return;
     }
 
-    // Simulate a successful process
-    console.log(t("resetPassword.passwordResetSuccessLog"));
-    Alert.alert(
-      t("alert.successTitle"),
-      t("resetPassword.passwordResetSuccessAlert")
-    );
-
-    // Navigate back to the login page after success
-    router.replace("/(auth)/login");
+    // ✅ Kalau sudah valid, baru kirim request
+    resetPassword(req)
+      .then(() => {
+        Alert.alert(
+          t("alert.successTitle"),
+          t("resetPassword.passwordResetSuccessAlert")
+        );
+        router.replace("/(auth)/login");
+      })
+      .catch((error) => {
+        console.error("Password reset failed:", error); // Sangat disarankan untuk logging error
+        setAlertVisible(true);
+      });
   };
 
   return (
@@ -88,8 +91,10 @@ export default function ResetPassword() {
                   className="bg-gray-100 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 border border-gray-200"
                   placeholder={t("resetPassword.otpPlaceholder")}
                   keyboardType="numeric"
-                  value={otp}
-                  onChangeText={setOtp}
+                  value={req.otp}
+                  onChangeText={(text) =>
+                    setReq((prev) => ({ ...prev, otp: text }))
+                  }
                 />
 
                 <Text className="text-sm text-gray-700 font-semibold mb-2">
@@ -99,8 +104,10 @@ export default function ResetPassword() {
                   className="bg-gray-100 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 border border-gray-200"
                   placeholder={t("resetPassword.newPasswordPlaceholder")}
                   secureTextEntry
-                  value={newPassword}
-                  onChangeText={setNewPassword}
+                  value={req.newPassword}
+                  onChangeText={(text) =>
+                    setReq((prev) => ({ ...prev, newPassword: text }))
+                  }
                 />
 
                 <Text className="text-sm text-gray-700 font-semibold mb-2">
@@ -110,8 +117,8 @@ export default function ResetPassword() {
                   className="bg-gray-100 h-12 rounded-lg px-4 text-base text-gray-800 mb-5 border border-gray-200"
                   placeholder={t("resetPassword.confirmPasswordPlaceholder")}
                   secureTextEntry
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
+                  value={confirmNewPassword}
+                  onChangeText={setConfirmNewPassword}
                 />
 
                 <TouchableOpacity
@@ -122,6 +129,13 @@ export default function ResetPassword() {
                     {t("resetPassword.resetButton")}
                   </Text>
                 </TouchableOpacity>
+                {/* Komponen Custom Alert */}
+                <CustomAlert
+                  isVisible={isAlertVisible}
+                  onClose={() => setAlertVisible(false)}
+                  title={t("login.loginFailedTitle")}
+                  message={t("login.loginFailedMessage")}
+                />
 
                 <TouchableOpacity onPress={() => router.back()}>
                   <Text className="mt-5 text-sm text-gray-600 text-center">

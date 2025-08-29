@@ -1,6 +1,19 @@
+import { DoctorResponse } from "@/src/types/doctor";
 import axios from "axios";
 import API_URL from "../../../src/config"; //
-import { Doctor } from "../../../src/types/doctor";
+
+interface Doctor {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  qualification: string;
+  specialization: string;
+  bio: string;
+  practiceLocation: string;
+  photoUrl: string;
+}
 
 interface ApiResponse<T> {
   success: boolean;
@@ -46,4 +59,11 @@ export async function getDoctorById(id: number | null): Promise<Doctor> {
     console.error(`Failed to fetch doctor with id ${id}:`, error);
     throw error;
   }
+}
+
+export async function getDoctor(): Promise<DoctorResponse> {
+  const response = await axios.get<ApiResponse<DoctorResponse>>(
+    `${API_URL}/doctors/me`
+  );
+  return response.data.data;
 }

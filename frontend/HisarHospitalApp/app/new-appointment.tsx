@@ -1,6 +1,7 @@
 // app/(tabs)/new-appointment.tsx
 
-import { usePatientContext } from "@/src/context/PatientContext";
+import { useUserContext } from "@/src/context/UserContext";
+import { PatientResponse } from "@/src/types/patient";
 import {
   AppointmentRequest,
   bookAppointment,
@@ -36,11 +37,18 @@ const NewAppointment = () => {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
+  // const {
+  //   patient,
+  //   loading: patientLoading,
+  //   error: patientError,
+  // } = usePatientContext();
   const {
-    patient,
+    user,
     loading: patientLoading,
     error: patientError,
-  } = usePatientContext();
+    reloadUser,
+  } = useUserContext();
+  const patient = user as PatientResponse;
 
   const doctorId = id ? Number(id) : null;
   const {
@@ -126,7 +134,7 @@ const NewAppointment = () => {
       );
     } catch (error: any) {
       Alert.alert(
-        t("error"),
+        // t("error.failedToCreateAppointment"),
         error.response?.data?.message || t("error.failedToCreateAppointment")
       );
     }
@@ -147,7 +155,7 @@ const NewAppointment = () => {
   const isDoctorSelected = !!doctor;
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100 mt-7">
+    <SafeAreaView className="flex-1 bg-gray-100 mt-7 mb-12">
       <ScrollView className="p-6">
         <Text className="text-3xl font-bold mb-6 text-center">
           {t("newAppointment.title")}

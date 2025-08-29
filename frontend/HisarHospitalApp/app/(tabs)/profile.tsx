@@ -10,14 +10,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// Impor useTranslation
+
+import { useUserContext } from "@/src/context/UserContext";
+import { PatientResponse } from "@/src/types/patient";
 import { useTranslation } from "react-i18next";
-import { usePatientContext } from "../../src/context/PatientContext";
 
 const Profile = () => {
-  // Gunakan hook useTranslation
   const { t } = useTranslation();
-  const { patient, loading, error, reloadPatient } = usePatientContext();
+  const { user, loading, error, reloadUser, logout } = useUserContext();
+
+  const patient =
+    user && `ROLE_${user.role}` === "ROLE_PATIENT"
+      ? (user as PatientResponse)
+      : null;
 
   const handleEditProfile = () => {
     router.push("/update-profile");
@@ -25,8 +30,8 @@ const Profile = () => {
 
   useFocusEffect(
     useCallback(() => {
-      reloadPatient();
-    }, [reloadPatient])
+      reloadUser();
+    }, [reloadUser])
   );
 
   if (loading) {
@@ -45,6 +50,23 @@ const Profile = () => {
           {t("error.failedToFetch")}
         </Text>
         <Text className="text-red-400 text-sm mt-2 text-center">{error}</Text>
+        <TouchableOpacity
+          onPress={reloadUser}
+          className="mt-4 p-2 rounded-md bg-blue-500"
+        >
+          <Text className="text-white font-bold">{t("retry")}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <View className="flex-1 justify-center items-center p-6">
+        <Text className="text-lg text-gray-600">{t("error.userNotFound")}</Text>
+        <Text className="text-md text-gray-500 mt-2 text-center">
+          {t("error.userNotFoundDetail")}
+        </Text>
       </View>
     );
   }
@@ -59,19 +81,19 @@ const Profile = () => {
         {/* Profile Header Section */}
         <View className="items-center mb-8">
           <View className="w-24 h-24 bg-gray-200 rounded-full items-center justify-center overflow-hidden border-2 border-gray-300">
-            {/* Mengganti uri image dengan placeholder. Periksa kembali properti 'photoUrl' dari objek patient */}
             <Image
               source={{
                 uri:
-                  patient?.birthDate ||
+                  patient?.firstName ||
                   "https://placehold.co/150x150/E5E7EB/4B5563?text=user",
               }}
               className="w-full h-full"
               resizeMode="cover"
             />
           </View>
+
           <Text className="text-2xl font-bold mt-4 text-gray-800">
-            {patient?.name}
+            {patient?.firstName} {patient?.lastName}
           </Text>
           <Text className="text-gray-500 text-sm">{patient?.email}</Text>
         </View>
@@ -127,7 +149,6 @@ const Profile = () => {
 
         {/* Account Actions Section */}
         <TouchableOpacity
-          // Updated: Changed button color to orange and added a stronger shadow
           className="bg-blue-600 p-4 rounded-lg shadow-md flex-row items-center justify-center mb-4"
           onPress={handleEditProfile}
         >
@@ -138,8 +159,11 @@ const Profile = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          // Updated: Added a stronger shadow
           className="bg-red-500 p-4 rounded-lg shadow-md flex-row items-center justify-center"
+          onPress={async () => {
+            await logout();
+            router.replace("/(auth)/login");
+          }}
         >
           <Ionicons name="log-out-outline" size={20} color="white" />
           <Text className="text-white text-lg font-semibold ml-2">

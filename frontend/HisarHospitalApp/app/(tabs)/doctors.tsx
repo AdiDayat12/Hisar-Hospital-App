@@ -1,4 +1,3 @@
-import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import {
@@ -86,7 +85,6 @@ const Doctors = () => {
                 <Text className="text-white font-semibold mr-2">
                   {t("viewProfile")}
                 </Text>
-                <MaterialIcons name="arrow-right-alt" size={20} color="white" />
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

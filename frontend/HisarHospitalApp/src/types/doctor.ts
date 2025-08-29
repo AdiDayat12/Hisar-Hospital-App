@@ -10,3 +10,15 @@ export interface Doctor {
   practiceLocation: string;
   photoUrl: string;
 }
+
+// src/types/doctor.ts
+
+import { UserResponse } from "./user";
+
+export interface DoctorResponse extends UserResponse {
+  qualification: string;
+  specialization: string;
+  bio?: string; // Optional
+  practiceLocation?: string; // Optional
+  photoUrl?: string; // Optional
+}
