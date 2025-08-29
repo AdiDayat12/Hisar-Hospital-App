@@ -13,6 +13,7 @@ import com.hisarhospital.hisar_hospital_api.entity.Doctor;
 import com.hisarhospital.hisar_hospital_api.entity.Patient;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
 import com.hisarhospital.hisar_hospital_api.enums.UserRole;
+import com.hisarhospital.hisar_hospital_api.exception.EmailAlreadyExistException;
 import com.hisarhospital.hisar_hospital_api.mapper.AdminMapper;
 import com.hisarhospital.hisar_hospital_api.mapper.DoctorMapper;
 import com.hisarhospital.hisar_hospital_api.mapper.PatientMapper;
@@ -47,9 +48,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public DoctorResponse registerDoctor(DoctorRequest request) {
+        UserEntity existingUser = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new EmailAlreadyExistException("This email already registered"));
         UserEntity user = doctorMapper.toUserEntity(request);
         Doctor doctor = doctorMapper.toDoctor(request);
 
+        // Set phone
+        user.setPhone(request.getPhone());
         // Encode password
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         UserEntity savedUser = userRepository.save(user);
@@ -65,18 +70,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse registerPatient(UserRequest request) {
         UserEntity user = userMapper.toUserEntity(request);
-
+        Patient patient = new Patient();
         // encode password
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-
         UserEntity savedUser = userRepository.save(user);
 
-        otpService.sendVerificationOtp(savedUser);
+//        otpService.sendVerificationOtp(savedUser);
 
-//        patient.setUser(savedUser);
-//
-//        Patient savedPatient = patientRepository.save(patient);
+        patient.setUser(savedUser);
+
+        patientRepository.save(patient);
 
         return userMapper.toUserResponse(savedUser);
     }

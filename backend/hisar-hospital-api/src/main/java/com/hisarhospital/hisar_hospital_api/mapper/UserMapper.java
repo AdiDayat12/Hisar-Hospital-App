@@ -14,7 +14,7 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", constant = "PATIENT") // set role otomatis
-    @Mapping(target = "isAccountVerified", constant = "false")
+    @Mapping(target = "isAccountVerified", constant = "true")
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "phone", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

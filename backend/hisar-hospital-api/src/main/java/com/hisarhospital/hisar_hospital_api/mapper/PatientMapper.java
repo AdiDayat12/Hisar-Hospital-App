@@ -20,11 +20,11 @@ public interface PatientMapper {
     // Mapping ke UserEntity (field dokter diabaikan)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", constant = "PATIENT") // set role otomatis
-    @Mapping(target = "isAccountVerified", constant = "false")
+    @Mapping(target = "isAccountVerified", constant = "true")
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
-    @Mapping(target = "status", constant = "PENDING_VERIFICATION")
+    @Mapping(target = "status", constant = "ACTIVE")
     @Mapping(target = "patient", ignore = true)
     @Mapping(target = "doctor", ignore = true)
     @Mapping(target = "admin", ignore = true)

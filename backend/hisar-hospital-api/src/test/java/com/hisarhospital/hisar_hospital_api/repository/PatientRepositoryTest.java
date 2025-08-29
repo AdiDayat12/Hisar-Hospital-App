@@ -1,6 +1,8 @@
 package com.hisarhospital.hisar_hospital_api.repository;
 
 import com.hisarhospital.hisar_hospital_api.entity.Patient;
+import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
+import com.hisarhospital.hisar_hospital_api.enums.UserRole;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -9,104 +11,109 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author adilinan
  */
 
-//@EnableJpaRepositories(basePackages = "com.hisarhospital.hisar_hospital_api.repository")
-//@EntityScan("com.hisarhospital.hisar_hospital_api.entity")
-    // DataJpaTest sudah mencakup keduanya, hanya jika package berada di luar package utama kita pakai ini
+
 @DataJpaTest
-@Slf4j
 @ActiveProfiles("test")
 class PatientRepositoryTest {
+
     @Autowired
-    private PatientRepository repository;
-    private Long patientId;
-    @Test
-    void test () {
-        log.warn("OMG! {}", "hello");
-    }
+    private PatientRepository patientRepository;
 
-    @BeforeEach
-    void setUp () {
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Test
+    void testSaveAndFindById() {
+        // given: persist UserEntity dulu
+        UserEntity user = new UserEntity();
+        user.setEmail("patient@example.com");
+        user.setRole(UserRole.PATIENT);
+        entityManager.persist(user);
+
+        // buat Patient terkait user tsb
         Patient patient = new Patient();
-        patient.setFirstName("John");
-        patient.setLastName("Chena");
+        patient.setBirthDate(LocalDate.of(2000, 1, 1));
+        patient.setAddress("123 Main Street");
+        patient.setUser(user);
 
-        repository.save(patient);
-        patientId = patient.getId();
-    }
+        Patient savedPatient = patientRepository.save(patient);
 
-    @AfterEach
-    void cleanUp () {
-        repository.deleteAll();
-    }
+        // when
+        Optional<Patient> foundPatient = patientRepository.findById(savedPatient.getId());
 
-    @Test
-    void testSavePatient() {
-        Patient newPatient = new Patient();
-        newPatient.setFirstName("Jane");
-        newPatient.setLastName("Doe");
-
-        Patient savedPatient = repository.save(newPatient);
-
-        assertNotNull(savedPatient.getId());
-        assertEquals("Jane", savedPatient.getFirstName());
+        // then
+        assertThat(foundPatient).isPresent();
+        assertThat(foundPatient.get().getAddress()).isEqualTo("123 Main Street");
+        assertThat(foundPatient.get().getUser().getEmail()).isEqualTo("patient@example.com");
     }
 
     @Test
-    void testFindAllPatients() {
-        // Save another patient to ensure there's more than one
-        Patient anotherPatient = new Patient();
-        anotherPatient.setFirstName("Alice");
-        anotherPatient.setLastName("Smith");
-        repository.save(anotherPatient);
+    void testFindAll() {
+        // given
+        UserEntity user1 = new UserEntity();
+        user1.setEmail("patient1@example.com");
+        user1.setRole(UserRole.PATIENT);
+        entityManager.persist(user1);
 
-        List<Patient> patients = repository.findAll();
+        UserEntity user2 = new UserEntity();
+        user2.setEmail("patient2@example.com");
+        user2.setRole(UserRole.PATIENT);
+        entityManager.persist(user2);
 
-        assertFalse(patients.isEmpty());
-        assertEquals(2, patients.size());
+        Patient patient1 = new Patient();
+        patient1.setBirthDate(LocalDate.of(1990, 5, 5));
+        patient1.setAddress("Address 1");
+        patient1.setUser(user1);
+
+        Patient patient2 = new Patient();
+        patient2.setBirthDate(LocalDate.of(1995, 6, 6));
+        patient2.setAddress("Address 2");
+        patient2.setUser(user2);
+
+        patientRepository.saveAll(List.of(patient1, patient2));
+
+        // when
+        List<Patient> patients = patientRepository.findAll();
+
+        // then
+        assertThat(patients).hasSize(2);
     }
 
     @Test
-    void findByIdSuccess () {
-        Optional<Patient> expectedPatient = repository.findById(patientId);
-        assertNotNull(expectedPatient);
-    }
+    void testDelete() {
+        // given
+        UserEntity user = new UserEntity();
+        user.setEmail("deletePatient@example.com");
+        user.setRole(UserRole.PATIENT);
+        entityManager.persist(user);
 
-    @Test
-    void findByIdFail () {
-        Optional<Patient> nonExistsPatient = repository.findById(90L);
-        assertTrue(nonExistsPatient.isEmpty());
-    }
+        Patient patient = new Patient();
+        patient.setBirthDate(LocalDate.of(1985, 12, 12));
+        patient.setAddress("Delete Street");
+        patient.setUser(user);
 
-    @Test
-    void testUpdatePatient() {
-        Optional<Patient> patientOptional = repository.findById(patientId);
-        assertTrue(patientOptional.isPresent());
+        Patient savedPatient = patientRepository.save(patient);
 
+        // when
+        patientRepository.delete(savedPatient);
 
-        Patient patientToUpdate = patientOptional.get();
-        patientToUpdate.setFirstName("John");
-        patientToUpdate.setLastName("Wick");
-
-        Patient updatedPatient = repository.save(patientToUpdate);
-
-        assertEquals("Wick", updatedPatient.getLastName());
-    }
-
-    @Test
-    void testDeletePatient() {
-        Optional<Patient> deletedPatient = repository.findById(1L);
-        assertTrue(deletedPatient.isEmpty());
+        // then
+        Optional<Patient> foundPatient = patientRepository.findById(savedPatient.getId());
+        assertThat(foundPatient).isNotPresent();
     }
 }

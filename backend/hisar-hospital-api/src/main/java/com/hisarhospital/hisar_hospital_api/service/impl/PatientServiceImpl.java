@@ -52,10 +52,11 @@ public class PatientServiceImpl implements PatientService {
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setIdentityNumber(request.getIdentityNumber());
         user.setPhone(request.getPhone());
 
-        Patient patient = new Patient();
+        Patient patient = user.getPatient();
+
         patient.setBirthDate(request.getBirthDate());
         patient.setAddress(request.getAddress());
 
@@ -108,6 +109,8 @@ public class PatientServiceImpl implements PatientService {
         }
         userRepository.delete(user);
     }
+
+
 
 
 }

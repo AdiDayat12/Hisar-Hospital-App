@@ -12,9 +12,10 @@ import lombok.*;
 @NoArgsConstructor
 @Data
 public class DoctorRequest extends UserRequest {
-    private String phone;
-    private String specialization;
-    private int experienceYears;
     private String qualification;
+    private String specialization;
+    private String phone;
+    private String bio;
+    private String practiceLocation;
     private String photoUrl;
 }

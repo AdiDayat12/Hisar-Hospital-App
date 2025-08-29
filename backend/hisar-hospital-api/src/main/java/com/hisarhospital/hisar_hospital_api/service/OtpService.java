@@ -6,11 +6,13 @@ import com.hisarhospital.hisar_hospital_api.entity.Patient;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
 import com.hisarhospital.hisar_hospital_api.enums.OtpPurpose;
 import com.hisarhospital.hisar_hospital_api.enums.Status;
+import com.hisarhospital.hisar_hospital_api.exception.OtpInvalidException;
 import com.hisarhospital.hisar_hospital_api.repository.DoctorRepository;
 import com.hisarhospital.hisar_hospital_api.repository.OtpRepository;
 import com.hisarhospital.hisar_hospital_api.repository.PatientRepository;
 import com.hisarhospital.hisar_hospital_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * @author adilinan
  */
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OtpService {
@@ -53,7 +56,7 @@ public class OtpService {
 
         // validate otp
         if (!passwordEncoder.matches(otp, otpToken.getOtpCode())) {
-            throw new RuntimeException("invalid");
+            throw new OtpInvalidException("invalid");
         }
 
         // validate otp expiry time
@@ -85,6 +88,7 @@ public class OtpService {
         otpToken.setUser(user);
         otpRepository.save(otpToken);
         emailService.sendResetOtp(user.getEmail(), username, otpCode);
+        log.info("otp yang terkirim: {}", otpCode);
     }
 
     public void resetPassword (String email, String otp, String password) {

@@ -14,6 +14,7 @@ public interface DoctorMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", constant = "DOCTOR") // set role otomatis
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "phone", ignore = true)
     @Mapping(target = "isAccountVerified", constant = "true")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)

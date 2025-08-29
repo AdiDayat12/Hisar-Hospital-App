@@ -18,16 +18,15 @@ import java.util.Set;
 public class Doctor {
     @Id
     private Long id;
-    private String specialization;
-    private int experienceYears;
     private String qualification;
-    private String schedule;
+    private String specialization;
+    @Lob
+    private String bio;
+    private String practiceLocation;
     private String photoUrl;
     @OneToOne
     @MapsId
     @JoinColumn(name = "id")
     private UserEntity user;
 
-    @OneToMany(mappedBy = "doctor", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<DoctorSchedule> schedules;
 }

@@ -10,6 +10,7 @@ import java.time.LocalTime;
 @Data
 public class AppointmentRequest {
     private Long doctorId;
+    private String specialization;
     private LocalDate appointmentDate;
     private LocalTime appointmentTime;
 }

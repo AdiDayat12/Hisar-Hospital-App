@@ -2,6 +2,7 @@ package com.hisarhospital.hisar_hospital_api.controller;
 
 import com.hisarhospital.hisar_hospital_api.dto.ApiResponse;
 import com.hisarhospital.hisar_hospital_api.dto.request.*;
+import com.hisarhospital.hisar_hospital_api.dto.response.LoginResponse;
 import com.hisarhospital.hisar_hospital_api.dto.response.PatientResponse;
 import com.hisarhospital.hisar_hospital_api.dto.response.UserResponse;
 import com.hisarhospital.hisar_hospital_api.service.CustomUserDetailsService;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -43,9 +45,9 @@ public class AuthController {
 
     @PostMapping("/patients/register")
     public ResponseEntity<ApiResponse<?>> create (@RequestBody UserRequest request) {
-        UserResponse response = userService.registerPatient(request);
+        userService.registerPatient(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Patient created successfully", response));
+                .body(new ApiResponse<>(HttpStatus.CREATED.value(), "Patient created successfully", "OK"));
     }
 
 
@@ -63,8 +65,8 @@ public class AuthController {
                     .path("/")
                     .build();
             return ResponseEntity.ok()
-                            .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                                    .body(new ApiResponse<>(HttpStatus.OK.value(), "success", jwtToken));
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(new ApiResponse<>(HttpStatus.OK.value(), "success", jwtToken));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                     new ApiResponse<>(HttpStatus.UNAUTHORIZED.value(), "Incorrect email or password", null));
@@ -92,14 +94,21 @@ public class AuthController {
 
 
     @PostMapping("/reset-password")
-    public void resetPassword (@Valid @RequestBody UpdatePasswordRequest updateRequest) {
+    public ResponseEntity<ApiResponse<?>> resetPassword (@Valid @RequestBody UpdatePasswordRequest updateRequest) {
         String email = updateRequest.getEmail();
         String otp = updateRequest.getOtp();
         String password = updateRequest.getNewPassword();
-        try {
-            otpService.resetPassword(email, otp, password);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        log.info("email yang masuk: {}", email );
+        otpService.resetPassword(email, otp, password);
+        return ResponseEntity.ok().body(
+                ApiResponse.builder()
+                        .data(null)
+                        .build()
+        );
+    }
+
+    @DeleteMapping("/logout")
+    public void logout (@CurrentSecurityContext (expression = "authentication?.name") String email) {
+
     }
 }

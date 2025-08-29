@@ -31,7 +31,6 @@ public class PatientController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getProfile(@CurrentSecurityContext(expression = "authentication?.name") String email) {
-        log.info("email: {}", email);
         PatientResponse response = patientService.findPatientByEmail(email);
         return ResponseEntity.ok(new ApiResponse<>(HttpStatus.OK.value(), "Patient retrieved successfully", response));
     }

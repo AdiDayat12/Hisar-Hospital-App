@@ -13,5 +13,8 @@ import java.util.List;
 public interface AppointmentService {
     AppointmentResponse createAppointment(String patientEmail, AppointmentRequest request);
     List<AppointmentResponse> getPatientAppointments(String patientEmail);
-    List<AppointmentResponse> getDoctorAppointments(String doctorEmail, LocalDate date);
+    List<AppointmentResponse> getDoctorAppointmentsByDate(String doctorEmail, LocalDate date);
+    List<AppointmentResponse> getDoctorAppointments(String doctorEmail);
+    AppointmentResponse getAppointment (Long id);
+    void cancelAppointment (Long id);
 }

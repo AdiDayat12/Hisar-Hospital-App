@@ -2,6 +2,8 @@ package com.hisarhospital.hisar_hospital_api.repository;
 
 import com.hisarhospital.hisar_hospital_api.entity.Doctor;
 import com.hisarhospital.hisar_hospital_api.entity.Doctor;
+import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
+import com.hisarhospital.hisar_hospital_api.enums.UserRole;
 import com.mysql.cj.log.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -9,10 +11,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -20,84 +25,96 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 
 @DataJpaTest
-@Slf4j
+@ActiveProfiles("test")
+
 class DoctorRepositoryTest {
+
     @Autowired
-    private DoctorRepository repository;
-    private Long doctorId;
+    private DoctorRepository doctorRepository;
 
-    @BeforeEach
-    void setUp (){
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Test
+    void testSaveAndFindById() {
+        // given: buat user terlebih dahulu
+        UserEntity user = new UserEntity();
+        user.setEmail("doctor@example.com");
+        user.setRole(UserRole.DOCTOR);
+        entityManager.persist(user);
+
+        // buat doctor yang terhubung ke user
         Doctor doctor = new Doctor();
-        doctor.setFirstName("John");
-        doctor.setLastName("batistuta");
-        doctorId = repository.save(doctor).getId();
-    }
+        doctor.setQualification("MD");
+        doctor.setSpecialization("Cardiology");
+        doctor.setBio("Experienced cardiologist with 10+ years in practice.");
+        doctor.setPracticeLocation("Hisar Hospital");
+        doctor.setPhotoUrl("http://example.com/photo.jpg");
+        doctor.setUser(user);
 
-    @AfterEach
-    void cleanUp () {
-        repository.deleteAll();
-    }
+        Doctor savedDoctor = doctorRepository.save(doctor);
 
+        // when
+        Optional<Doctor> foundDoctor = doctorRepository.findById(savedDoctor.getId());
 
-    @Test
-    void testSaveDoctor() {
-        Doctor newDoctor = new Doctor();
-        newDoctor.setFirstName("Jane");
-        newDoctor.setLastName("Doe");
-
-        Doctor savedDoctor = repository.save(newDoctor);
-
-        assertNotNull(savedDoctor.getId());
-        assertEquals("Jane", savedDoctor.getFirstName());
+        // then
+        assertThat(foundDoctor).isPresent();
+        assertThat(foundDoctor.get().getSpecialization()).isEqualTo("Cardiology");
+        assertThat(foundDoctor.get().getUser().getEmail()).isEqualTo("doctor@example.com");
     }
 
     @Test
-    void testFindAllDoctors() {
-        // Save another Doctor to ensure there's more than one
-        Doctor anotherDoctor = new Doctor();
-        anotherDoctor.setFirstName("Alice");
-        anotherDoctor.setLastName("Smith");
-        repository.save(anotherDoctor);
+    void testFindAll() {
+        // given
+        UserEntity user1 = new UserEntity();
+        user1.setEmail("doc1@example.com");
+        user1.setRole(UserRole.DOCTOR);
+        entityManager.persist(user1);
 
-        List<Doctor> Doctors = repository.findAll();
+        UserEntity user2 = new UserEntity();
+        user2.setEmail("doc2@example.com");
+        user2.setRole(UserRole.DOCTOR);
+        entityManager.persist(user2);
 
-        assertFalse(Doctors.isEmpty());
-        assertEquals(2, Doctors.size());
-    }
+        Doctor doctor1 = new Doctor();
+        doctor1.setQualification("MBBS");
+        doctor1.setSpecialization("Neurology");
+        doctor1.setUser(user1);
 
+        Doctor doctor2 = new Doctor();
+        doctor2.setQualification("MD");
+        doctor2.setSpecialization("Dermatology");
+        doctor2.setUser(user2);
 
-    @Test
-    void findByIdSuccess () {
-        Optional<Doctor> existDoctor = repository.findById(doctorId);
-        assertTrue(existDoctor.isPresent());
-    }
+        doctorRepository.saveAll(List.of(doctor1, doctor2));
 
-    @Test
-    void findByIdFail () {
-        log.info("Total records: {}", repository.count());
-        Optional<Doctor> nonExistDoctor = repository.findById(20L);
-        assertTrue(nonExistDoctor.isEmpty());
-    }
+        // when
+        List<Doctor> doctors = doctorRepository.findAll();
 
-    @Test
-    void testUpdateDoctor() {
-        Optional<Doctor> DoctorOptional = repository.findById(doctorId);
-        assertTrue(DoctorOptional.isPresent());
-
-
-        Doctor DoctorToUpdate = DoctorOptional.get();
-        DoctorToUpdate.setFirstName("John");
-        DoctorToUpdate.setLastName("Wick");
-
-        Doctor updatedDoctor = repository.save(DoctorToUpdate);
-
-        assertEquals("Wick", updatedDoctor.getLastName());
+        // then
+        assertThat(doctors).hasSize(2);
     }
 
     @Test
-    void testDeleteDoctor() {
-        Optional<Doctor> deletedDoctor = repository.findById(1L);
-        assertTrue(deletedDoctor.isEmpty());
+    void testDelete() {
+        // given
+        UserEntity user = new UserEntity();
+        user.setEmail("deleteDoc@example.com");
+        user.setRole(UserRole.DOCTOR);
+        entityManager.persist(user);
+
+        Doctor doctor = new Doctor();
+        doctor.setQualification("MD");
+        doctor.setSpecialization("Orthopedics");
+        doctor.setUser(user);
+
+        Doctor savedDoctor = doctorRepository.save(doctor);
+
+        // when
+        doctorRepository.delete(savedDoctor);
+
+        // then
+        Optional<Doctor> foundDoctor = doctorRepository.findById(savedDoctor.getId());
+        assertThat(foundDoctor).isNotPresent();
     }
 }

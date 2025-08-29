@@ -1,19 +1,20 @@
 package com.hisarhospital.hisar_hospital_api.repository;
 
-import com.hisarhospital.hisar_hospital_api.entity.Doctor;
-import com.hisarhospital.hisar_hospital_api.entity.Patient;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
-import org.junit.jupiter.api.BeforeEach;
+import com.hisarhospital.hisar_hospital_api.enums.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 /**
  * @author adilinan
@@ -21,33 +22,52 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("test")
 @DataJpaTest
 class UserRepositoryTest {
+
     @Autowired
     private UserRepository userRepository;
 
-    @BeforeEach
-    void setUp () {
-        Patient patient = new Patient();
-        patient.setEmail("patient1@gmail.com");
-        userRepository.save(patient);
-        Doctor doctor = new Doctor();
-        doctor.setEmail("doctor1@gmail.com");
-        userRepository.save(doctor);
+    @Test
+    void testFindByEmail() {
+        // given
+        UserEntity user = new UserEntity();
+        user.setEmail("test@example.com");
+        user.setRole(UserRole.ADMIN);
+        userRepository.save(user);
+
+        // when
+        Optional<UserEntity> foundUser = userRepository.findByEmail("test@example.com");
+
+        // then
+        assertThat(foundUser).isPresent();
+        assertThat(foundUser.get().getEmail()).isEqualTo("test@example.com");
     }
 
     @Test
-    void findByEmailSuccess () {
-        Optional<UserEntity> patient = userRepository.findByEmail("patient1@gmail.com");
-        Optional<UserEntity> doctor = userRepository.findByEmail("doctor1@gmail.com");
-        assertTrue(patient.isPresent());
-        assertTrue(doctor.isPresent());
-    }
+    void testFindByRole() {
+        // given
+        UserEntity user1 = new UserEntity();
+        user1.setEmail("admin1@example.com");
+        user1.setRole(UserRole.ADMIN);
 
-    @Test
-    void findByEmailFail () {
-        Optional<UserEntity> patient = userRepository.findByEmail("usernotfound@gmail.com");
-        Optional<UserEntity> doctor = userRepository.findByEmail("usernotfound@gmail.com");
-        assertTrue(patient.isEmpty());
-        assertTrue(doctor.isEmpty());
-    }
+        UserEntity user2 = new UserEntity();
+        user2.setEmail("admin2@example.com");
+        user2.setRole(UserRole.ADMIN);
 
+        UserEntity user3 = new UserEntity();
+        user3.setEmail("user@example.com");
+        user3.setRole(UserRole.PATIENT);
+
+        userRepository.saveAll(List.of(user1, user2, user3));
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // when
+        Page<UserEntity> admins = userRepository.findByRole(UserRole.ADMIN, pageable);
+
+        // then
+        assertThat(admins.getTotalElements()).isEqualTo(2);
+        assertThat(admins.getContent())
+                .extracting(UserEntity::getRole)
+                .containsOnly(UserRole.ADMIN);
+    }
 }

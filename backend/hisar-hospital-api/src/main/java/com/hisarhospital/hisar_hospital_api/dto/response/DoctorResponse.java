@@ -11,8 +11,9 @@ import lombok.*;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class DoctorResponse extends UserResponse {
-    private String specialization;
-    private int experienceYears;
     private String qualification;
+    private String specialization;
+    private String bio;
+    private String practiceLocation;
     private String photoUrl;
 }

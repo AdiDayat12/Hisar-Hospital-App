@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/doctors")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('DOCTOR')")
+@CrossOrigin(origins = "*")
 public class DoctorController {
 
     private final DoctorService doctorService;

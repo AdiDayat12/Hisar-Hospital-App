@@ -37,6 +37,7 @@ public class Appointment {
     @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
+    private String specialization;
     private LocalDate appointmentDate;
     private LocalTime appointmentTime;
 

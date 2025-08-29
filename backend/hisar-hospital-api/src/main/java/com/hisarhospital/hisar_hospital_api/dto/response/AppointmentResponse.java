@@ -13,11 +13,13 @@ import java.time.LocalTime;
 @Data
 public class AppointmentResponse {
     private Long id;
-    private Long patientId;
     private Long doctorId;
+    private Long patientId;
     private String patientName;
     private String doctorName;
+    private String specialization;
     private LocalDate appointmentDate;
     private LocalTime appointmentTime;
     private String status;
+    private String notes;
 }
