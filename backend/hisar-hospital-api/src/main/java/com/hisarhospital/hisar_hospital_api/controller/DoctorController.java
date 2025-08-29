@@ -1,12 +1,9 @@
 package com.hisarhospital.hisar_hospital_api.controller;
 
 import com.hisarhospital.hisar_hospital_api.dto.ApiResponse;
-import com.hisarhospital.hisar_hospital_api.dto.request.DoctorRequest;
 import com.hisarhospital.hisar_hospital_api.dto.response.DoctorResponse;
 import com.hisarhospital.hisar_hospital_api.dto.response.UserResponse;
-import com.hisarhospital.hisar_hospital_api.enums.UserRole;
 import com.hisarhospital.hisar_hospital_api.service.DoctorService;
-import com.hisarhospital.hisar_hospital_api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

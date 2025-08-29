@@ -1,11 +1,8 @@
 package com.hisarhospital.hisar_hospital_api.mapper;
 
 import com.hisarhospital.hisar_hospital_api.dto.request.AdminRequest;
-import com.hisarhospital.hisar_hospital_api.dto.request.PatientRequest;
 import com.hisarhospital.hisar_hospital_api.dto.response.AdminResponse;
-import com.hisarhospital.hisar_hospital_api.dto.response.PatientResponse;
 import com.hisarhospital.hisar_hospital_api.entity.Admin;
-import com.hisarhospital.hisar_hospital_api.entity.Patient;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

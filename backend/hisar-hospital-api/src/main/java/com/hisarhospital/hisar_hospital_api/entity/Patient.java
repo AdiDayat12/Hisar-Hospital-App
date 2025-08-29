@@ -1,6 +1,5 @@
 package com.hisarhospital.hisar_hospital_api.entity;
 
-import com.hisarhospital.hisar_hospital_api.enums.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,6 +1,8 @@
 package com.hisarhospital.hisar_hospital_api.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -8,9 +10,9 @@ import java.time.LocalTime;
  * @author adilinan
  */
 
-
-
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AppointmentResponse {
     private Long id;
     private Long doctorId;

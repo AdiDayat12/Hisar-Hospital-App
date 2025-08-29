@@ -3,7 +3,6 @@ package com.hisarhospital.hisar_hospital_api.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Set;
 
 /**
  * @author adilinan

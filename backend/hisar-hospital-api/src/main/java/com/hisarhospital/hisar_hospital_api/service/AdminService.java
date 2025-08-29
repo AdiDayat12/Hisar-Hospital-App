@@ -1,7 +1,6 @@
 package com.hisarhospital.hisar_hospital_api.service;
 
 import com.hisarhospital.hisar_hospital_api.dto.request.AdminRequest;
-import com.hisarhospital.hisar_hospital_api.dto.request.LoginRequest;
 import com.hisarhospital.hisar_hospital_api.dto.response.AdminResponse;
 
 /**

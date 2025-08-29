@@ -1,9 +1,4 @@
 package com.hisarhospital.hisar_hospital_api.service.impl;
-
-/**
- * @author adilinan
- */
-
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
 import com.hisarhospital.hisar_hospital_api.entity.Appointment;
 import com.hisarhospital.hisar_hospital_api.enums.AppointmentStatus;
@@ -23,6 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * @author adilinan
+ */
+
+
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -41,30 +42,25 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentResponse createAppointment(String patientEmail, AppointmentRequest request) {
-        // Validasi: tanggal & waktu tidak boleh di masa lalu
         if (request.getAppointmentDate().isBefore(LocalDate.now()) ||
                 (request.getAppointmentDate().isEqual(LocalDate.now()) &&
                         request.getAppointmentTime().isBefore(LocalTime.now()))) {
             throw new InvalidAppointmentDateException("Appointment date and time cannot be in the past.");
         }
 
-        // Cek ketersediaan slot
         boolean isSlotTaken = appointmentRepository.existsByDoctorIdAndAppointmentDateAndAppointmentTime(
                 request.getDoctorId(), request.getAppointmentDate(), request.getAppointmentTime());
         if (isSlotTaken) {
             throw new SlotNotAvailableException("Appointment slot is not available.");
         }
 
-        // Cari patient
         UserEntity patientUser = userRepository.findByEmail(patientEmail)
                 .orElseThrow(() -> new RuntimeException("Patient not found."));
         Patient patient = patientUser.getPatient();
 
-        // Cari doctor
         Doctor doctor = doctorRepository.findById(request.getDoctorId())
                 .orElseThrow(() -> new RuntimeException("Doctor not found."));
 
-        // Buat appointment baru
         Appointment appointment = appointmentMapper.toAppointment(request);
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);

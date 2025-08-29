@@ -1,12 +1,8 @@
 package com.hisarhospital.hisar_hospital_api.service.impl;
 
 import com.hisarhospital.hisar_hospital_api.dto.request.AdminRequest;
-import com.hisarhospital.hisar_hospital_api.dto.request.DoctorRequest;
-import com.hisarhospital.hisar_hospital_api.dto.request.LoginRequest;
 import com.hisarhospital.hisar_hospital_api.dto.response.AdminResponse;
-import com.hisarhospital.hisar_hospital_api.dto.response.DoctorResponse;
 import com.hisarhospital.hisar_hospital_api.entity.Admin;
-import com.hisarhospital.hisar_hospital_api.entity.Doctor;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
 import com.hisarhospital.hisar_hospital_api.enums.UserRole;
 import com.hisarhospital.hisar_hospital_api.mapper.AdminMapper;

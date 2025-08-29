@@ -1,7 +1,5 @@
 package com.hisarhospital.hisar_hospital_api.entity;
 
-import com.hisarhospital.hisar_hospital_api.enums.Status;
-import com.hisarhospital.hisar_hospital_api.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 

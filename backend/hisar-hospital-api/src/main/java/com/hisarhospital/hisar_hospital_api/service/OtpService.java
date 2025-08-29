@@ -1,15 +1,11 @@
 package com.hisarhospital.hisar_hospital_api.service;
 
-import com.hisarhospital.hisar_hospital_api.entity.Doctor;
 import com.hisarhospital.hisar_hospital_api.entity.OtpToken;
-import com.hisarhospital.hisar_hospital_api.entity.Patient;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
 import com.hisarhospital.hisar_hospital_api.enums.OtpPurpose;
 import com.hisarhospital.hisar_hospital_api.enums.Status;
 import com.hisarhospital.hisar_hospital_api.exception.OtpInvalidException;
-import com.hisarhospital.hisar_hospital_api.repository.DoctorRepository;
 import com.hisarhospital.hisar_hospital_api.repository.OtpRepository;
-import com.hisarhospital.hisar_hospital_api.repository.PatientRepository;
 import com.hisarhospital.hisar_hospital_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

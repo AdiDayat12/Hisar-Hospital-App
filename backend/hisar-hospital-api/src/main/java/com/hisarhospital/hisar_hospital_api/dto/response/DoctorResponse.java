@@ -16,4 +16,5 @@ public class DoctorResponse extends UserResponse {
     private String bio;
     private String practiceLocation;
     private String photoUrl;
+
 }

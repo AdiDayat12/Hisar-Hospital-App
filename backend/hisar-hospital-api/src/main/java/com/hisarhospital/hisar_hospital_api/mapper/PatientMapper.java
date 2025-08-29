@@ -1,15 +1,11 @@
 package com.hisarhospital.hisar_hospital_api.mapper;
 
-import com.hisarhospital.hisar_hospital_api.dto.request.DoctorRequest;
 import com.hisarhospital.hisar_hospital_api.dto.request.PatientRequest;
-import com.hisarhospital.hisar_hospital_api.dto.response.DoctorResponse;
 import com.hisarhospital.hisar_hospital_api.dto.response.PatientResponse;
-import com.hisarhospital.hisar_hospital_api.entity.Doctor;
 import com.hisarhospital.hisar_hospital_api.entity.Patient;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.springframework.stereotype.Component;
 
 /**
  * @author adilinan

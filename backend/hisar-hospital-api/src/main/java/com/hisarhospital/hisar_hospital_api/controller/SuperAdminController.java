@@ -2,9 +2,7 @@ package com.hisarhospital.hisar_hospital_api.controller;
 
 import com.hisarhospital.hisar_hospital_api.dto.ApiResponse;
 import com.hisarhospital.hisar_hospital_api.dto.request.AdminRequest;
-import com.hisarhospital.hisar_hospital_api.dto.request.LoginRequest;
 import com.hisarhospital.hisar_hospital_api.dto.response.AdminResponse;
-import com.hisarhospital.hisar_hospital_api.entity.Admin;
 import com.hisarhospital.hisar_hospital_api.service.AdminService;
 import com.hisarhospital.hisar_hospital_api.service.UserService;
 import lombok.RequiredArgsConstructor;

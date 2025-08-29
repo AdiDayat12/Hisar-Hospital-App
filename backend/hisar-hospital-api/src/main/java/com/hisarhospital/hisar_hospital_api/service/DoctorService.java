@@ -1,9 +1,7 @@
 package com.hisarhospital.hisar_hospital_api.service;
 
 import com.hisarhospital.hisar_hospital_api.dto.request.DoctorRequest;
-import com.hisarhospital.hisar_hospital_api.dto.response.AdminResponse;
 import com.hisarhospital.hisar_hospital_api.dto.response.DoctorResponse;
-import com.hisarhospital.hisar_hospital_api.dto.response.PatientResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

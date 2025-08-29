@@ -2,12 +2,8 @@ package com.hisarhospital.hisar_hospital_api.controller;
 
 import com.hisarhospital.hisar_hospital_api.dto.ApiResponse;
 import com.hisarhospital.hisar_hospital_api.dto.request.*;
-import com.hisarhospital.hisar_hospital_api.dto.response.LoginResponse;
-import com.hisarhospital.hisar_hospital_api.dto.response.PatientResponse;
-import com.hisarhospital.hisar_hospital_api.dto.response.UserResponse;
 import com.hisarhospital.hisar_hospital_api.service.CustomUserDetailsService;
 import com.hisarhospital.hisar_hospital_api.service.OtpService;
-import com.hisarhospital.hisar_hospital_api.service.PatientService;
 import com.hisarhospital.hisar_hospital_api.service.UserService;
 import com.hisarhospital.hisar_hospital_api.util.JwtUtil;
 import jakarta.validation.Valid;
@@ -20,11 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.util.Map;

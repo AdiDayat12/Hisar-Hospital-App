@@ -2,11 +2,8 @@ package com.hisarhospital.hisar_hospital_api.service.impl;
 
 import com.hisarhospital.hisar_hospital_api.dto.request.PatientRequest;
 import com.hisarhospital.hisar_hospital_api.dto.response.PatientResponse;
-import com.hisarhospital.hisar_hospital_api.entity.OtpToken;
 import com.hisarhospital.hisar_hospital_api.entity.Patient;
 import com.hisarhospital.hisar_hospital_api.entity.UserEntity;
-import com.hisarhospital.hisar_hospital_api.enums.OtpPurpose;
-import com.hisarhospital.hisar_hospital_api.enums.Status;
 import com.hisarhospital.hisar_hospital_api.enums.UserRole;
 import com.hisarhospital.hisar_hospital_api.mapper.PatientMapper;
 import com.hisarhospital.hisar_hospital_api.repository.OtpRepository;
@@ -23,10 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 /**
  * @author adilinan
@@ -109,8 +102,4 @@ public class PatientServiceImpl implements PatientService {
         }
         userRepository.delete(user);
     }
-
-
-
-
 }

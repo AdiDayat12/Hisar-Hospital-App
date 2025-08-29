@@ -5,7 +5,6 @@ import com.hisarhospital.hisar_hospital_api.dto.request.DoctorRequest;
 import com.hisarhospital.hisar_hospital_api.dto.request.PatientRequest;
 import com.hisarhospital.hisar_hospital_api.dto.response.DoctorResponse;
 import com.hisarhospital.hisar_hospital_api.dto.response.PatientResponse;
-import com.hisarhospital.hisar_hospital_api.service.AdminService;
 import com.hisarhospital.hisar_hospital_api.service.DoctorService;
 import com.hisarhospital.hisar_hospital_api.service.PatientService;
 import com.hisarhospital.hisar_hospital_api.service.UserService;
